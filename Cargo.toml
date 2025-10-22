@@ -1,0 +1,41 @@
+[package]
+name = "stylus-mintable-erc721"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[dependencies]
+alloy-primitives = { version = "1.3.1", default-features = false, features = ["tiny-keccak"] }
+alloy-sol-types = "=1.3.1"
+mini-alloc = "1.0.0"
+stylus-sdk = "0.10.0-beta.1"
+
+[dev-dependencies]
+motsu = "=0.10.0"
+alloy-primitives = { version = "=0.8.20", features = ["arbitrary"] }
+arbitrary = { version = "1.4", features = ["derive"] }
+hex-literal = "0.4"
+
+[features]
+default = []
+nft = []
+verifier = []
+vkeys = []
+export-abi = ["stylus-sdk/export-abi"]
+debug = ["stylus-sdk/debug"]
+
+[[bin]]
+name = "stylus-mintable-erc721"
+path = "src/main.rs"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+
+opt-level = "z"
+
