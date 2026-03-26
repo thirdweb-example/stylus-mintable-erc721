@@ -6,6 +6,7 @@ use alloy_primitives::{Address, FixedBytes, U256};
 use alloy_sol_types::sol;
 use stylus_sdk::{
     abi::Bytes,
+    call::RawCall,
     function_selector,
     host::VM,
     prelude::*,
@@ -171,25 +172,33 @@ impl StylusMintableERC721 {
             if self.vm().msg_value() != price {
                 return Err("Incorrect native token".into());
             }
-            // todo: transfer
+            unsafe {
+                RawCall::new_with_value(&*self.vm(), price)
+                    .call(sale_config, &[])
+                    .map_err(|_| String::from("Native transfer failed"))?;
+            }
             return Ok(());
         } else {
             if self.vm().msg_value() > U256::ZERO {
                 return Err("Incorrect native token".into());
             }
-            
+
             let transfer_sig = alloy_primitives::hex!("23b872dd");
             let mut data = Vec::new();
             data.extend_from_slice(&transfer_sig);
+            data.extend_from_slice(&[0u8; 12]);
             data.extend_from_slice(_owner.as_slice());
+            data.extend_from_slice(&[0u8; 12]);
             data.extend_from_slice(sale_config.as_slice());
             data.extend_from_slice(&price.to_be_bytes::<32>());
-            
-            // todo: transfer
+
+            unsafe {
+                RawCall::new(&*self.vm())
+                    .call(currency, &data)
+                    .map_err(|_| String::from("ERC20 transferFrom failed"))?;
+            }
             return Ok(());
         }
-
-        Ok(())
     }
 
 
